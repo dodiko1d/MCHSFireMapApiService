@@ -1,5 +1,3 @@
-""" Separated tests for Products. """
-
 from fastapi.testclient import TestClient
 
 from main import app

@@ -1,8 +1,6 @@
-""" Controllers are containing main part of site's business-logic. """
-
 from sqlalchemy.orm import Session
 from sqlalchemy import literal
-from products_group import controller as products_group_controller
+
 
 from . import model, schemas
 
@@ -81,18 +79,6 @@ def reduce_reserved_product(db: Session, product_id: int, reducing_value: int):
     if product.reserved_number - reducing_value < 0:
         return {'404': 'Reserved number can\'t be less than 0.'}
     product.reserved_number -= reducing_value
-    db.commit()
-    db.refresh(product)
-    return product
-
-
-def change_product_group(db: Session, product_id: int, new_group_id: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    group = products_group_controller.__get_products_group_instance_by_id(db=db, products_group_id=new_group_id)
-    if not group:
-        return 'There is not group with such ID'
-    product.group_id = new_group_id
-    product.group = group
     db.commit()
     db.refresh(product)
     return product

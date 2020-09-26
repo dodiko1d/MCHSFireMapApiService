@@ -1,5 +1,3 @@
-""" Site paths work control - call necessary controllers. """
-
 from fastapi import APIRouter, Depends, HTTPException
 from . import schemas, controller
 from sqlalchemy.orm import Session
@@ -15,6 +13,8 @@ async def get_db():
 
 
 router = APIRouter()
+
+
 
 
 async def check_product_existence(product_id: int, db: Session = Depends(get_db)):
@@ -105,3 +105,5 @@ def reduce_reserved_product(product_id: int, reducing_value: int, db: Session = 
 )
 def change_product_group(product_id: int, new_group_id: int, db: Session = Depends(get_db)):
     return controller.change_product_group(db=db, product_id=product_id, new_group_id=new_group_id)
+
+
