@@ -1,16 +1,21 @@
 """ Database Fire point Model. """
 
-from sqlalchemy import Column, ForeignKey, Integer, String, CheckConstraint, Float, Boolean
-from geoalchemy2 import Geography
+from sqlalchemy import Column, Integer, String, Float, Boolean
 from database import Base
-from sqlalchemy.orm import relationship
 
 
 class FirePoint(Base):
     __tablename__ = 'fire_point'
 
-    id = Column(Integer, primary_key=True, index=True)
-    coordinates = Column(Geography(geometry_type='POINT'))
+    id = Column(Integer, primary_key=True)
+    lat = Column(Float)
+    long = Column(Float)
+    brightness = Column(Float)
+    probability = Column(Float)
+    intensity = Column(Float)
+    fireType = Column(Integer)
+    town = Column(String)
+    dateTime = Column(String)
     owner = Column(String)
     land_type = Column(String)
     fuel = Column(String)
