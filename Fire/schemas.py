@@ -2,10 +2,18 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class ProductCreation(BaseModel):
+class FireSpot(BaseModel):
     id: int
-    name: str
-    group_id: int
-    stock_balance: int
-    reserved_number: int
-    description: Optional[str] = ''
+    coordinates: Geography(geometry_type='POINT')
+    owner: str
+    land_type: str
+    fuel: str
+    wind_direction: str
+    wind_speed: float
+    wind_gust: float
+    humidity: float
+    precipitation: float
+    description: str
+    area: float
+    status: bool
+    update_time: str
