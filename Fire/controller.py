@@ -3,6 +3,7 @@ from sqlalchemy import literal
 from datetime import datetime
 from . import model, schemas, helper
 
+URL = 'http://maps.kosmosnimki.ru/rest/ver1/layers/F2840D287CD943C4B1122882C5B92565/search?query=%22DateTime%22%3E=%272020-08-07%27%20%20and%20%22DateTime%22%3C%272020-08-10%27%20&BorderFromLayer=78E56184F48149DF8A39BA81CA25A01E&BorderID=1&api_key=U26GSBBC7N&out_cs=EPSG:3395'
 
 def time_logger(func):
     def wrapped(db: Session, fire_id: int, *args, **kwargs):
