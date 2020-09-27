@@ -1,60 +1,80 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import literal
+from datetime import datetime
+from . import model, schemas, helper
 
 
-from . import model, schemas
+def time_logger(func):
+    def wrapped(db: Session, fire_id: int, *args, **kwargs):
+        result = func(*args, ** kwargs)
+        fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
+        fire.update_time = datetime
+        return result
+    return wrapped
+
+
+def overview_period(timestamp_1, timestamp_2):
+    URL.replace(URL[URL.find('%27') + 3: URL.find('%27') + 13], timestamp_1)
+    URL.replace(URL[URL.rfind('%27') - 12:URL.rfind('%27')], timestamp_2)
+    return URL
 
 
 def __get_fire_map(db: Session):
-    return db.query(model.FirePoint).all()
+    web_data = helper.get_data()
+    for i in range(len(web_data)):
+        db_fire = helper.fire_from_api(i, web_data)
+        db.add(db_fire)
+        db.commit()
+        db.refresh(db_fire)
 
 
 def __get_firepoint_by_id(db: Session, fire_id: int):
     return db.query(model.FirePoint).filter(model.FirePoint.id == fire_id).first()
 
 
-def fire_report(db: Session, fire: schemas.FireSpot):
+@time_logger
+def fire_report(db: Session, fire: schemas.FirePoint):
 
     db_fire = model.FirePoint(
         id=fire.id,
-        coordinates=fire.coordinates,
-        owner=fire.owner,
-        land_type=fire.land_type,
-        fuel=fire.fuel,
-        wind=fire.wind_direction,
-        wind_speed=fire.wind_speed,
-        wind_gust=fire.wind_gust,
-        humidity=fire.humidity,
-        precipitation=fire.precipitation,
-        description=fire.description,
-        area=fire.area,
+        lat=fire.lat,
+        long=fire.long,
+        brightness=fire.brightness,
+        probability=fire.probability,
+        intensity=fire.intensity,
+        fireType=fire.fireType,
+        town=fire.town,
+        dateTime=fire.dateTime,
         status=True,
-        update_time=fire.update_time
+        update_time=0
     )
     db.add(db_fire)
     db.commit()
     db.refresh(db_fire)
-    return {'status_code': '200'}
 
 
+@time_logger
 def fire_out(db: Session, fire_id: int):
     fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
     fire.status = False
     return fire
 
 
+@time_logger
 def precipitation_start(db: Session, fire_id: int, volume: int):
     fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
     fire.precipitation = volume
     return fire
 
 
+@time_logger
 def precipitation_stop(db: Session, fire_id: int):
     fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
     fire.precipitation = 0
     return fire
 
 
+@time_logger
 def add_description(db: Session, fire_id: int, description: str):
     fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
     fire.fire_description = description
