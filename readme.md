@@ -1,14 +1,14 @@
 # Microservice for stock counting.
 
 ## Main Stack
-* [Python 3.8](https://www.python.org/)
+* [Python 3.7](https://www.python.org/downloads/release/python-379/)
 * [FastAPI](https://fastapi.tiangolo.com/)
 * [SQLAlchemy](https://www.sqlalchemy.org/)
 * [pytest](https://docs.pytest.org/) feat [FastAPI Test Testing](https://fastapi.tiangolo.com/tutorial/testing/) usage
 
 ## Easy launch
 
-####1. [install python 3.8](https://www.python.org/downloads/release/python-383/)
+####1. [install python 3.7](https://www.python.org/downloads/release/python-379/)
 
 ####2. run command below in terminal
         pip install -r requirements.txt

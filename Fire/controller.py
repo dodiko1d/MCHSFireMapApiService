@@ -1,130 +1,86 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import literal
+from datetime import datetime
+from . import model, schemas, helper
+
+URL = 'http://maps.kosmosnimki.ru/rest/ver1/layers/F2840D287CD943C4B1122882C5B92565/search?query=%22DateTime%22%3E=%272020-08-07%27%20%20and%20%22DateTime%22%3C%272020-08-10%27%20&BorderFromLayer=78E56184F48149DF8A39BA81CA25A01E&BorderID=1&api_key=U26GSBBC7N&out_cs=EPSG:3395'
 
 
-from . import model, schemas
+def time_logger(func):
+    def wrapped(db: Session, fire_id: int, *args, **kwargs):
+        result = func(*args, ** kwargs)
+        fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
+        fire.update_time = datetime
+        return result
+    return wrapped
 
 
-def __get_product_instance_by_id(db: Session, product_id: int):
-    return db.query(model.Product).filter(model.Product.id == product_id).first()
+def overview_period(timestamp_1, timestamp_2):
+    URL.replace(URL[URL.find('%27') + 3: URL.find('%27') + 13], timestamp_1)
+    URL.replace(URL[URL.rfind('%27') - 12:URL.rfind('%27')], timestamp_2)
+    return URL
 
 
-def __check_reserved_number_smaller_or_equal_stock_balance(reserved_number: int, stock_balance: int):
-    if reserved_number > stock_balance:
-        return True
-    return False
+def get_fire_map(db: Session):
+    web_data = helper.get_data()
+    for i in range(len(web_data)):
+        db_fire = helper.fire_from_api(i, web_data)
+        db.add(db_fire)
+        db.commit()
+        db.refresh(db_fire)
 
 
-def create_product(db: Session, product: schemas.ProductCreation):
-    if __check_reserved_number_smaller_or_equal_stock_balance(reserved_number=product.reserved_number,
-                                                              stock_balance=product.stock_balance):
-        return {'404': 'Reserved number should be less or equal stock balance.'}
+def __get_firepoint_by_id(db: Session, fire_id: int):
+    return db.query(model.FirePoint).filter(model.FirePoint.id == fire_id).first()
 
-    db_product = model.Product(
-        id=product.id,
-        name=product.name,
-        group_id=product.group_id,
-        stock_balance=product.stock_balance,
-        description=product.description,
-        reserved_number=product.reserved_number,
+
+@time_logger
+def fire_report(db: Session, fire: schemas.FirePoint):
+
+    db_fire = model.FirePoint(
+        id=fire.id,
+        lat=fire.lat,
+        long=fire.long,
+        brightness=fire.brightness,
+        probability=fire.probability,
+        intensity=fire.intensity,
+        fireType=fire.fireType,
+        town=fire.town,
+        dateTime=fire.dateTime,
+        status=True,
+        update_time=0
     )
-    db.add(db_product)
+    db.add(db_fire)
     db.commit()
-    db.refresh(db_product)
-    return {'status_code': '200'}
+    db.refresh(db_fire)
 
 
-def remove_product(db: Session, product_id: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    db.delete(product)
-    db.commit()
-    return {'200': 'Product has been removed.'}
+@time_logger
+def fire_out(db: Session, fire_id: int):
+    fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
+    fire.status = False
+    return fire
 
 
-def increase_stock_balance(db: Session, product_id: int, increasing_value: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    product.stock_balance += increasing_value
-    db.commit()
-    db.refresh(product)
-    return product
+@time_logger
+def precipitation_start(db: Session, fire_id: int, volume: int):
+    fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
+    fire.precipitation = volume
+    return fire
 
 
-def reduce_stock_balance(db: Session, product_id: int, reducing_value: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    if product.stock_balance - reducing_value < product.reserved_number:
-        return {'404': 'Stock balance can\'t be less than 0 or reserved number.'}
-    product.stock_balance -= reducing_value
-    db.commit()
-    db.refresh(product)
-    return product
+@time_logger
+def precipitation_stop(db: Session, fire_id: int):
+    fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
+    fire.precipitation = 0
+    return fire
 
 
-def get_rest_not_reserved_product(db: Session, product_id: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    return product.stock_balance - product.reserved_number
+@time_logger
+def add_description(db: Session, fire_id: int, description: str):
+    fire = __get_firepoint_by_id(db=db, fire_id=fire_id)
+    fire.fire_description = description
+    return fire
 
 
-def increase_reserved_product(db: Session, product_id: int, increasing_value: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    if increasing_value > get_rest_not_reserved_product(db=db, product_id=product_id):
-        return {'404': 'Reserved number can\'t be greater than stock balance.'}
-    product.reserved_number += increasing_value
-    db.commit()
-    db.refresh(product)
-    return product
 
-
-def reduce_reserved_product(db: Session, product_id: int, reducing_value: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    if product.reserved_number - reducing_value < 0:
-        return {'404': 'Reserved number can\'t be less than 0.'}
-    product.reserved_number -= reducing_value
-    db.commit()
-    db.refresh(product)
-    return product
-
-
-def change_product_property(db: Session, product_id: int, property_name: str, new_property_value):
-    db_product_json = __get_product_instance_by_id(db=db, product_id=product_id).json()
-    property_type = type(db_product_json[property_name])
-
-    if property_name in ['stock_balance', 'reserved_number']:
-        return {'404': 'There are unique methods for properties stock balance, reserved_number and group.'}
-
-    if property_type != type(new_property_value):
-        try:
-            new_property_value = db_product_json[property_name].__class__(new_property_value)
-        except ValueError:
-            return {'404': 'Incorrect property type.'}
-
-    db_product_json[property_name] = new_property_value
-    remove_product(db=db, product_id=product_id)
-
-    db_product = model.Product(**db_product_json)
-    db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
-    return db_product
-
-
-def __find_product_instances_by_name_part(db: Session, name_part: str, limit: int = 5):
-    result = db.query(model.Product).filter(literal(name_part).contains(model.Product.name))
-    return result.limit(limit).all()
-
-
-def __find_product_instances_by_description_part(db: Session, description_part: str, limit: int = 5):
-    result = db.query(model.Product).filter(literal(description_part).contains(model.Product.description))
-    return result.limit(limit).all()
-
-
-def get_product_data_by_id(db: Session, product_id: int):
-    product = __get_product_instance_by_id(db=db, product_id=product_id)
-    if not product:
-        return False
-    return {
-        'id': product.id,
-        'name': product.name,
-        'group_id': product.group_id,
-        'stock_balance': product.stock_balance,
-        'description': product.description,
-    }
