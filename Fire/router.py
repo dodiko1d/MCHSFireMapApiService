@@ -24,7 +24,7 @@ async def check_firepoint(fire_id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/add_new_fire/', summary='Add new firepoint.')
-async def add_new_fire(fire: schemas.FireSpot, db: Session = Depends(get_db)):
+async def add_new_fire(fire: schemas.FirePoint, db: Session = Depends(get_db)):
     db_fire = controller.__get_firepoint_by_id(db, fire_id=fire.id)
     if db_fire:
         raise HTTPException(status_code=400, detail='Fire has been already added.')

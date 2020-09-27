@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class FireSpot(BaseModel):
+class FirePoint(BaseModel):
     id: int
     lat: float
     long: float
