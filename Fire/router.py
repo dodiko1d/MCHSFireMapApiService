@@ -47,7 +47,7 @@ async def remove_fire(fire_id: int, db: Session = Depends(get_db)):
 
 
 @router.post(
-    '/precicitation_start/',
+    '/precipitation_start/',
     summary='Precipitation added'
 )
 async def precipitation_start(fire_id: int, volume: int, db: Session = Depends(get_db)):
