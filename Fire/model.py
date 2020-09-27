@@ -1,6 +1,6 @@
 """ Database Fire point Model. """
 
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
 from database import Base
 
 
@@ -27,4 +27,4 @@ class FirePoint(Base):
     description = Column(String)
     area = Column(Float)
     status = Column(Boolean)
-    update_time = Column()
+    update_time = Column(DateTime)
