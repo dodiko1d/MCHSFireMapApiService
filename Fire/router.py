@@ -21,7 +21,16 @@ async def check_firepoint(fire_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail='Firepoint with this id is not exist.')
 
 
-@router.post('/add_new_fire/', summary='Add new firepoint.')
+@router.post('/get_fire_map/', summary='Получение карты пожаров.')
+async def add_new_fire(fire: schemas.FirePoint, db: Session = Depends(get_db)):
+    db_fire = controller.__get_firepoint_by_id(db, fire_id=fire.id)
+    if db_fire:
+        raise HTTPException(status_code=400, detail='Fire has been already added.')
+    controller.fire_report(db=db, fire=fire)
+    return {'status_code': '200'}
+
+
+@router.post('/add_new_fire/', summary='Добавление новой точки пожара.')
 async def add_new_fire(fire: schemas.FirePoint, db: Session = Depends(get_db)):
     db_fire = controller.__get_firepoint_by_id(db, fire_id=fire.id)
     if db_fire:
@@ -32,7 +41,7 @@ async def add_new_fire(fire: schemas.FirePoint, db: Session = Depends(get_db)):
 
 @router.post(
     '/remove_fire/{fire_id}',
-    summary='Remove a firepoint.',
+    summary='Удаление точки пожара.',
     dependencies=[Depends(check_firepoint)]
 )
 async def remove_fire(fire_id: int, db: Session = Depends(get_db)):
@@ -41,7 +50,7 @@ async def remove_fire(fire_id: int, db: Session = Depends(get_db)):
 
 
 @router.post(
-    '/precicpitation_start/',
+    '/precicitation_start/',
     summary='Precipitation added'
 )
 async def precipitation_start(fire_id: int, volume: int, db: Session = Depends(get_db)):
@@ -49,7 +58,7 @@ async def precipitation_start(fire_id: int, volume: int, db: Session = Depends(g
 
 
 @router.post(
-    '/precicpitation_stop/'
+    '/precipitation_stop/'
 )
 async def precipitation_stop(fire_id: int, db: Session = Depends(get_db)):
     return controller.precipitation_stop(db=db, fire_id=fire_id)

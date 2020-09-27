@@ -21,7 +21,7 @@ def overview_period(timestamp_1, timestamp_2):
     return URL
 
 
-def __get_fire_map(db: Session):
+def get_fire_map(db: Session):
     web_data = helper.get_data()
     for i in range(len(web_data)):
         db_fire = helper.fire_from_api(i, web_data)
