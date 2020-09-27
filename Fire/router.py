@@ -21,13 +21,10 @@ async def check_firepoint(fire_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail='Firepoint with this id is not exist.')
 
 
-@router.post('/get_fire_map/', summary='Получение карты пожаров.')
+@router.get('/get_fire_map/', summary='Получение карты пожаров.')
 async def add_new_fire(fire: schemas.FirePoint, db: Session = Depends(get_db)):
-    db_fire = controller.__get_firepoint_by_id(db, fire_id=fire.id)
-    if db_fire:
-        raise HTTPException(status_code=400, detail='Fire has been already added.')
-    controller.fire_report(db=db, fire=fire)
-    return {'status_code': '200'}
+    db_firemap = controller.get_fire_map(db)
+    return db_firemap
 
 
 @router.post('/add_new_fire/', summary='Добавление новой точки пожара.')
