@@ -48,7 +48,7 @@ async def remove_fire(fire_id: int, db: Session = Depends(get_db)):
 
 @router.post(
     '/precipitation_start/',
-    summary='Precipitation added'
+    summary='Осадки (объём)'
 )
 async def precipitation_start(fire_id: int, volume: int, db: Session = Depends(get_db)):
     return controller.precipitation_start(db=db, fire_id=fire_id, volume=volume)
@@ -56,6 +56,7 @@ async def precipitation_start(fire_id: int, volume: int, db: Session = Depends(g
 
 @router.post(
     '/precipitation_stop/'
+    summary='Отсутствие осадков'
 )
 async def precipitation_stop(fire_id: int, db: Session = Depends(get_db)):
     return controller.precipitation_stop(db=db, fire_id=fire_id)
@@ -63,6 +64,7 @@ async def precipitation_stop(fire_id: int, db: Session = Depends(get_db)):
 
 @router.post(
     '/description/',
+    summary='Дополнительное описание'
 )
 async def add_description(description: str, fire_id: int, db: Session = Depends(get_db)):
     return controller.add_description(db=db, fire_id=fire_id, description=description)
